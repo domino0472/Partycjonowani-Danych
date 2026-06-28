@@ -1,17 +1,17 @@
-===========================
+======================
 Partycjonowanie danych
-===========================
+======================
 **Autorzy**
 
 1. Michał Bystrzak
 2. Damian Dominiak
 
 Wstęp i istota problemu
------------------------------
+-----------------------
 W dobie systemów informatycznych przetwarzających gigabajty lub terabajty informacji (tzw. VLDB - Very Large Databases), tradycyjne podejście do składowania danych staje się wysoce niewydajne. Kiedy pojedyncza tabela rozrasta się do setek milionów rekordów, fizyczne ograniczenia sprzętowe oraz narzuty na zarządzanie indeksami powodują drastyczny spadek wydajności. Partycjonowanie to zaawansowana technika architektoniczna, polegająca na logicznym podziale jednej, ogromnej tabeli na mniejsze, odseparowane fizycznie fragmenty nazywane partycjami. Z perspektywy aplikacji docelowej oraz zapytań SQL, tabela wciąż prezentuje się i zachowuje jak spójna, pojedyncza relacja.
 
 Cele stosowania partycjonowania danych
---------------------------------------------
+---------------------------------------
 Implementacja mechanizmu partycjonowania w systemach relacyjnych jest podyktowana chęcią rozwiązania konkretnych problemów wydajnościowych i administracyjnych. Główne cele to:
 
 * **Zwiększenie wydajności zapytań (Query Performance):** Fundamentalnym celem jest eliminacja konieczności skanowania całej tabeli (Full Table Scan). Dzięki mechanizmowi *Partition Pruning* (odcinanie partycji), planista zapytań analizuje warunki zdefiniowane w klauzuli ``WHERE`` i kieruje odczyt wyłącznie do tych fizycznych plików, które mogą zawierać poszukiwane dane.
@@ -19,7 +19,7 @@ Implementacja mechanizmu partycjonowania w systemach relacyjnych jest podyktowan
 * **Zarządzanie cyklem życia danych (Data Lifecycle Management):** W przypadku danych historycznych (np. logów), najszybszą metodą ich usunięcia jest operacja ``DROP TABLE`` na starej partycji. Jest to operacja na metadanych, trwająca ułamki sekund, w przeciwieństwie do standardowego ``DELETE``, które w architekturze MVCC (Multi-Version Concurrency Control) generuje ogromne ilości "martwych krotek" (dead tuples) i obciąża dziennik transakcji (WAL).
 
 Zastosowanie partycjonowania
-----------------------------------
+----------------------------
 Technika ta nie jest uniwersalnym rozwiązaniem dla każdej bazy danych, lecz sprawdza się w specyficznych, wymagających scenariuszach:
 
 * **Hurtownie danych (OLAP):** Systemy analityczne gromadzące dane historyczne. Partycjonowanie pozwala tam na błyskawiczne agregowanie danych (np. sumowanie przychodów z konkretnego miesiąca) bez wczytywania do pamięci RAM danych z całej dekady.
@@ -27,7 +27,7 @@ Technika ta nie jest uniwersalnym rozwiązaniem dla każdej bazy danych, lecz sp
 * **Implementacja Storage Tiering:** Możliwość fizycznego rozdzielenia danych na różne nośniki. Najnowsze i najczęściej odpytywane partycje (Hot Data) umieszcza się na ultra-szybkich macierzach NVMe, podczas gdy starsze, rzadko używane partycje (Cold Data) przenosi się na tańsze wolumeny dyskowe (HDD), co znacząco optymalizuje koszty infrastruktury.
 
 Zalety i wady partycjonowania
------------------------------------
+-----------------------------
 Jak każda technika optymalizacyjna, partycjonowanie stanowi kompromis inżynieryjny (Trade-off).
 
 **Zalety:**
@@ -43,7 +43,7 @@ Jak każda technika optymalizacyjna, partycjonowanie stanowi kompromis inżynier
 * Spadek wydajności w przypadku zapytań omijących klucz partycjonowania – silnik musi wówczas odpytać każdą fizyczną partycję z osobna.
 
 Implementacja partycjonowania w PostgreSQL
-------------------------------------------------
+------------------------------------------
 Począwszy od wersji 10, PostgreSQL oferuje natywne wsparcie dla partycjonowania deklaratywnego. Eliminuje to konieczność ręcznego pisania skomplikowanych wyzwalaczy czy reguł (rules). Silnik obsługuje trzy główne strategie przydziału danych:
 
 * **Zakresowe (RANGE):** Dane są dzielone na podstawie ciągłych przedziałów wartości. Najczęściej wykorzystywanym kluczem są typy daty i czasu (np. jedna partycja dla ``2025-01-01`` do ``2025-01-31``) lub sekwencje numeryczne.
@@ -51,7 +51,7 @@ Począwszy od wersji 10, PostgreSQL oferuje natywne wsparcie dla partycjonowania
 * **Haszujące (HASH):** Wiersze są rozdzielane na zadaną liczbę partycji (modułów) z wykorzystaniem zaawansowanej, matematycznej funkcji skrótu. Strategia ta nie służy przyspieszaniu zapytań zakresowych, lecz idealnie równomiernemu rozłożeniu ciężaru I/O podczas masowych operacji wstawiania (INSERT) w systemach wielodyskowych.
 
 Ograniczenia i obejście w środowisku SQLite
--------------------------------------------------
+-------------------------------------------
 W przeciwieństwie do potężnych, serwerowych silników RDBMS takich jak PostgreSQL, lekka i plikowa biblioteka SQLite **nie posiada** natywnego mechanizmu partycjonowania deklaratywnego. Wynika to z jej osadzonej (embedded) architektury.
 
 Niemniej jednak, efekt partycjonowania w SQLite można emulować za pomocą programistycznego podejścia warstwowego:
