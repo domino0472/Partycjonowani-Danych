@@ -1,8 +1,10 @@
-
 ===========================
 2.6. Partycjonowanie danych
 ===========================
-/Author: [Michał Bystrzak] /
+**Autorzy**
+
+1. Michał Bystrzak
+2. Damian Dominiak
 
 2.6.1 Wstęp i istota problemu
 -----------------------------
